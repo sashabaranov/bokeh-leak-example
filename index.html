@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bokeh memory leak example</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="   crossorigin="anonymous"></script>
+
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.3.min.js"></script>
+
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.css">
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.3.min.css">
+
+    <script type="text/javascript">
+        function cleanup() {
+            for (prop in Bokeh.index) {
+                if(Bokeh.index.hasOwnProperty(prop)) {
+                    console.log("Removing bokeh plot: " + prop);
+                    if (Bokeh.index[prop]) {
+                        Bokeh.index[prop].el.parentNode.removeChild(Bokeh.index[prop].el);
+                        delete Bokeh.index[prop];
+                        Bokeh.index[prop] = undefined;
+                    }
+                }
+            }
+        }
+
+        function load_plots() {
+            cleanup();
+            $.ajax({
+                async: true,
+                timeout: 100000,
+                tryCount: 0,
+                retryLimit: 2,
+                type: "GET",
+                url: "bokeh",
+                success: function(json) {
+                    $("#main").html(json.html);
+                    setTimeout(function(){eval(json.script)}, 0);
+                },
+            });
+        }
+    </script>
+</head>
+<body>
+
+<button onclick="load_plots()">Load plots</button>
+<div id="main"></div>
+
+</body>
+</html>
