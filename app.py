@@ -13,27 +13,30 @@ def hello():
 
 
 @app.route("/bokeh")
-def histos_for_path():
-    scripts, divs = "", ""
+def bokeh():
+    x_range = ['a', 'b', 'c', 'd']
+    y_values = [1., 2., 3., 4.]
+    y_errors = [.1, .2, .3, .4]
 
-    for _ in xrange(10):
-        plot = figure(
-            tools="pan,wheel_zoom,box_zoom,reset",
-            active_scroll="wheel_zoom",
-            toolbar_location="right"
-        )
 
-        plot.quad(
-           top=[b.top for b in bins],
-           bottom=[b.bottom for b in bins],
-           left=[b.left for b in bins],
-           right=[b.right for b in bins],
-           color=[b.color for b in bins],
-        )
-        script, div = components(plot, wrap_script=False)
-        scripts += script
-        divs += div
+    plot = figure(x_range=x_range)
+    plot.square(x_range, y_values, size=7, line_alpha=0)
 
+    err_xs = []
+    err_ys = []
+
+    for x, y, yerr in zip(x_range, y_values, y_errors):
+        err_xs.append((x, x))
+        err_ys.append((y - yerr, y + yerr))
+
+    # Option A: Does not work
+    # plot.multi_line(err_xs, err_ys)
+
+    # Option B: works!
+    for i in xrange(len(err_xs)):
+        plot.line(err_xs[i], err_ys[i])
+
+    scripts, divs = components(plot, wrap_script=False)
 
     return jsonify({
         "html": divs,
