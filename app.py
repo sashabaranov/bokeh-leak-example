@@ -7,6 +7,7 @@ from bokeh.embed import components
 
 app = Flask(__name__, template_folder=".")
 
+
 @app.route("/")
 def hello():
     return render_template("index.html")
@@ -16,7 +17,7 @@ def hello():
 def histos_for_path():
     scripts, divs = "", ""
 
-    for _ in xrange(10):
+    for _ in range(10):
         plot = figure(
             tools="pan,wheel_zoom,box_zoom,reset",
             active_scroll="wheel_zoom",
@@ -33,8 +34,7 @@ def histos_for_path():
         script, div = components(plot, wrap_script=False)
         scripts += script
         divs += div
-
-
+    print(scripts)
     return jsonify({
         "html": divs,
         "script": scripts,
