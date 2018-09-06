@@ -4,28 +4,36 @@
     <title>Bokeh memory leak example</title>
     <script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="   crossorigin="anonymous"></script>
 
-    <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.js"></script>
-    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.3.min.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-0.13.0.js"></script>
+    <script src="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.13.0.js"></script>
 
-    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.css">
-    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.3.min.css">
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.13.0.css">
+    <link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.13.0.css">
 
     <script type="text/javascript">
         function cleanup() {
+            for (doc_ix in Bokeh.documents) {
+                var doc = Bokeh.documents[doc_ix];
+                for (mdl_ix in doc._all_models) {
+                    Bokeh.documents[doc_ix]._all_models[mdl_ix].destroy();
+                }
+                Bokeh.documents[doc_ix]._roots[0].destroy();
+                delete Bokeh.documents[doc_ix]._roots[0];
+                delete Bokeh.documents[doc_ix];
+            }
+
             for (prop in Bokeh.index) {
                 if(Bokeh.index.hasOwnProperty(prop)) {
                     console.log("Removing bokeh plot: " + prop);
                     if (Bokeh.index[prop]) {
-                        Bokeh.index[prop].el.parentNode.removeChild(Bokeh.index[prop].el);
                         delete Bokeh.index[prop];
-                        Bokeh.index[prop] = undefined;
                     }
                 }
             }
+            $(".bk-root").remove();
         }
 
         function load_plots() {
-            cleanup();
             $.ajax({
                 async: true,
                 timeout: 100000,
@@ -44,6 +52,7 @@
 <body>
 
 <button onclick="load_plots()">Load plots</button>
+<button onclick="cleanup()">Cleanup</button>
 <div id="main"></div>
 
 </body>
